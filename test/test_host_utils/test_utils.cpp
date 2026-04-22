@@ -1,6 +1,7 @@
 #include <unity.h>
 
 #include "utils/BitMask.hpp"
+#include "utils/BitBucket.hpp"
 
 void test_default_constructor()
 {
@@ -169,6 +170,117 @@ void test_single_uint64_high_bit()
     TEST_ASSERT_TRUE(mask.single());
 }
 
+void test_bitbucket_default_constructor()
+{
+    BitBucket<uint8_t> bucket;
+    TEST_ASSERT_TRUE(bucket.isFree(0));
+    TEST_ASSERT_TRUE(bucket.isFree(7));
+    TEST_ASSERT_FALSE(bucket.isOccupied(0));
+    TEST_ASSERT_FALSE(bucket.isOccupied(7));
+}
+
+void test_bitbucket_explicit_constructor()
+{
+    BitBucket<uint8_t> bucket(0b10101010);
+    TEST_ASSERT_FALSE(bucket.isFree(1));
+    TEST_ASSERT_FALSE(bucket.isFree(3));
+    TEST_ASSERT_FALSE(bucket.isFree(5));
+    TEST_ASSERT_FALSE(bucket.isFree(7));
+    TEST_ASSERT_TRUE(bucket.isFree(0));
+    TEST_ASSERT_TRUE(bucket.isFree(2));
+    TEST_ASSERT_TRUE(bucket.isFree(4));
+    TEST_ASSERT_TRUE(bucket.isFree(6));
+}
+
+void test_bitbucket_acquire()
+{
+    BitBucket<uint8_t> bucket;
+    TEST_ASSERT_TRUE(bucket.acquire(3));
+    TEST_ASSERT_FALSE(bucket.isFree(3));
+    TEST_ASSERT_TRUE(bucket.isOccupied(3));
+
+    // Try to acquire already occupied bit
+    TEST_ASSERT_FALSE(bucket.acquire(3));
+
+    TEST_ASSERT_TRUE(bucket.acquire(5));
+    TEST_ASSERT_FALSE(bucket.isFree(5));
+    TEST_ASSERT_TRUE(bucket.isOccupied(5));
+}
+
+void test_bitbucket_release()
+{
+    BitBucket<uint8_t> bucket(0xFF);
+    TEST_ASSERT_TRUE(bucket.release(3));
+    TEST_ASSERT_TRUE(bucket.isFree(3));
+    TEST_ASSERT_FALSE(bucket.isOccupied(3));
+
+    // Try to release already free bit
+    TEST_ASSERT_FALSE(bucket.release(3));
+
+    TEST_ASSERT_TRUE(bucket.release(5));
+    TEST_ASSERT_TRUE(bucket.isFree(5));
+}
+
+void test_bitbucket_acquire_release_sequence()
+{
+    BitBucket<uint8_t> bucket;
+
+    // Acquire some bits
+    TEST_ASSERT_TRUE(bucket.acquire(0));
+    TEST_ASSERT_TRUE(bucket.acquire(2));
+    TEST_ASSERT_TRUE(bucket.acquire(4));
+
+    TEST_ASSERT_FALSE(bucket.isFree(0));
+    TEST_ASSERT_FALSE(bucket.isFree(2));
+    TEST_ASSERT_FALSE(bucket.isFree(4));
+    TEST_ASSERT_TRUE(bucket.isOccupied(0));
+    TEST_ASSERT_TRUE(bucket.isOccupied(2));
+    TEST_ASSERT_TRUE(bucket.isOccupied(4));
+
+    // Release one
+    TEST_ASSERT_TRUE(bucket.release(2));
+    TEST_ASSERT_TRUE(bucket.isFree(2));
+    TEST_ASSERT_FALSE(bucket.isOccupied(2));
+
+    // Re-acquire
+    TEST_ASSERT_TRUE(bucket.acquire(2));
+    TEST_ASSERT_FALSE(bucket.isFree(2));
+    TEST_ASSERT_TRUE(bucket.isOccupied(2));
+}
+
+void test_bitbucket_out_of_bounds()
+{
+    BitBucket<uint8_t> bucket;
+    TEST_ASSERT_FALSE(bucket.isFree(8));
+    TEST_ASSERT_FALSE(bucket.isOccupied(8));
+    TEST_ASSERT_FALSE(bucket.acquire(8));
+    TEST_ASSERT_FALSE(bucket.release(8));
+}
+
+void test_bitbucket_uint16()
+{
+    BitBucket<uint16_t> bucket;
+    TEST_ASSERT_TRUE(bucket.acquire(15));
+    TEST_ASSERT_FALSE(bucket.isFree(15));
+    TEST_ASSERT_TRUE(bucket.isOccupied(15));
+}
+
+void test_bitbucket_uint32()
+{
+    BitBucket<uint32_t> bucket;
+    TEST_ASSERT_TRUE(bucket.acquire(31));
+    TEST_ASSERT_FALSE(bucket.isFree(31));
+    TEST_ASSERT_TRUE(bucket.isOccupied(31));
+}
+
+void test_bitbucket_uint64()
+{
+    BitBucket<uint64_t> bucket;
+    TEST_ASSERT_TRUE(bucket.acquire(63));
+    TEST_ASSERT_FALSE(bucket.isFree(63));
+    TEST_ASSERT_TRUE(bucket.isOccupied(63));
+}
+
 void setUp() {}
 void tearDown() {}
 
@@ -195,6 +307,16 @@ int main()
     RUN_TEST(test_uint64);
     RUN_TEST(test_explicit_conversion);
     RUN_TEST(test_single_uint64_high_bit);
+
+    RUN_TEST(test_bitbucket_default_constructor);
+    RUN_TEST(test_bitbucket_explicit_constructor);
+    RUN_TEST(test_bitbucket_acquire);
+    RUN_TEST(test_bitbucket_release);
+    RUN_TEST(test_bitbucket_acquire_release_sequence);
+    RUN_TEST(test_bitbucket_out_of_bounds);
+    RUN_TEST(test_bitbucket_uint16);
+    RUN_TEST(test_bitbucket_uint32);
+    RUN_TEST(test_bitbucket_uint64);
 
     return UNITY_END();
 }
