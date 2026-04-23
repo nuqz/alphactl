@@ -192,33 +192,46 @@ void test_bitbucket_explicit_constructor()
     TEST_ASSERT_TRUE(bucket.isFree(6));
 }
 
-void test_bitbucket_acquire()
+void test_bitbucket_acquire_ok()
 {
     BitBucket<uint8_t> bucket;
-    TEST_ASSERT_TRUE(bucket.acquire(3));
+    TEST_ASSERT_EQUAL(BitBucketBase::AcquireResult::Ok, bucket.acquire(3));
     TEST_ASSERT_FALSE(bucket.isFree(3));
     TEST_ASSERT_TRUE(bucket.isOccupied(3));
-
-    // Try to acquire already occupied bit
-    TEST_ASSERT_FALSE(bucket.acquire(3));
-
-    TEST_ASSERT_TRUE(bucket.acquire(5));
-    TEST_ASSERT_FALSE(bucket.isFree(5));
-    TEST_ASSERT_TRUE(bucket.isOccupied(5));
 }
 
-void test_bitbucket_release()
+void test_bitbucket_acquire_in_use()
+{
+    BitBucket<uint8_t> bucket;
+    TEST_ASSERT_EQUAL(BitBucketBase::AcquireResult::Ok, bucket.acquire(3));
+    TEST_ASSERT_EQUAL(BitBucketBase::AcquireResult::InUse, bucket.acquire(3));
+}
+
+void test_bitbucket_acquire_invalid()
+{
+    BitBucket<uint8_t> bucket;
+    TEST_ASSERT_EQUAL(BitBucketBase::AcquireResult::Invalid, bucket.acquire(8));
+}
+
+void test_bitbucket_release_ok()
 {
     BitBucket<uint8_t> bucket(0xFF);
-    TEST_ASSERT_TRUE(bucket.release(3));
+    TEST_ASSERT_EQUAL(BitBucketBase::ReleaseResult::Ok, bucket.release(3));
     TEST_ASSERT_TRUE(bucket.isFree(3));
     TEST_ASSERT_FALSE(bucket.isOccupied(3));
+}
 
-    // Try to release already free bit
-    TEST_ASSERT_FALSE(bucket.release(3));
+void test_bitbucket_release_not_in_use()
+{
+    BitBucket<uint8_t> bucket(0xFF);
+    TEST_ASSERT_EQUAL(BitBucketBase::ReleaseResult::Ok, bucket.release(3));
+    TEST_ASSERT_EQUAL(BitBucketBase::ReleaseResult::NotInUse, bucket.release(3));
+}
 
-    TEST_ASSERT_TRUE(bucket.release(5));
-    TEST_ASSERT_TRUE(bucket.isFree(5));
+void test_bitbucket_release_invalid()
+{
+    BitBucket<uint8_t> bucket;
+    TEST_ASSERT_EQUAL(BitBucketBase::ReleaseResult::Invalid, bucket.release(8));
 }
 
 void test_bitbucket_acquire_release_sequence()
@@ -226,9 +239,9 @@ void test_bitbucket_acquire_release_sequence()
     BitBucket<uint8_t> bucket;
 
     // Acquire some bits
-    TEST_ASSERT_TRUE(bucket.acquire(0));
-    TEST_ASSERT_TRUE(bucket.acquire(2));
-    TEST_ASSERT_TRUE(bucket.acquire(4));
+    TEST_ASSERT_EQUAL(BitBucketBase::AcquireResult::Ok, bucket.acquire(0));
+    TEST_ASSERT_EQUAL(BitBucketBase::AcquireResult::Ok, bucket.acquire(2));
+    TEST_ASSERT_EQUAL(BitBucketBase::AcquireResult::Ok, bucket.acquire(4));
 
     TEST_ASSERT_FALSE(bucket.isFree(0));
     TEST_ASSERT_FALSE(bucket.isFree(2));
@@ -238,29 +251,20 @@ void test_bitbucket_acquire_release_sequence()
     TEST_ASSERT_TRUE(bucket.isOccupied(4));
 
     // Release one
-    TEST_ASSERT_TRUE(bucket.release(2));
+    TEST_ASSERT_EQUAL(BitBucketBase::ReleaseResult::Ok, bucket.release(2));
     TEST_ASSERT_TRUE(bucket.isFree(2));
     TEST_ASSERT_FALSE(bucket.isOccupied(2));
 
     // Re-acquire
-    TEST_ASSERT_TRUE(bucket.acquire(2));
+    TEST_ASSERT_EQUAL(BitBucketBase::AcquireResult::Ok, bucket.acquire(2));
     TEST_ASSERT_FALSE(bucket.isFree(2));
     TEST_ASSERT_TRUE(bucket.isOccupied(2));
-}
-
-void test_bitbucket_out_of_bounds()
-{
-    BitBucket<uint8_t> bucket;
-    TEST_ASSERT_FALSE(bucket.isFree(8));
-    TEST_ASSERT_FALSE(bucket.isOccupied(8));
-    TEST_ASSERT_FALSE(bucket.acquire(8));
-    TEST_ASSERT_FALSE(bucket.release(8));
 }
 
 void test_bitbucket_uint16()
 {
     BitBucket<uint16_t> bucket;
-    TEST_ASSERT_TRUE(bucket.acquire(15));
+    TEST_ASSERT_EQUAL(BitBucketBase::AcquireResult::Ok, bucket.acquire(15));
     TEST_ASSERT_FALSE(bucket.isFree(15));
     TEST_ASSERT_TRUE(bucket.isOccupied(15));
 }
@@ -268,7 +272,7 @@ void test_bitbucket_uint16()
 void test_bitbucket_uint32()
 {
     BitBucket<uint32_t> bucket;
-    TEST_ASSERT_TRUE(bucket.acquire(31));
+    TEST_ASSERT_EQUAL(BitBucketBase::AcquireResult::Ok, bucket.acquire(31));
     TEST_ASSERT_FALSE(bucket.isFree(31));
     TEST_ASSERT_TRUE(bucket.isOccupied(31));
 }
@@ -276,7 +280,7 @@ void test_bitbucket_uint32()
 void test_bitbucket_uint64()
 {
     BitBucket<uint64_t> bucket;
-    TEST_ASSERT_TRUE(bucket.acquire(63));
+    TEST_ASSERT_EQUAL(BitBucketBase::AcquireResult::Ok, bucket.acquire(63));
     TEST_ASSERT_FALSE(bucket.isFree(63));
     TEST_ASSERT_TRUE(bucket.isOccupied(63));
 }
@@ -310,10 +314,13 @@ int main()
 
     RUN_TEST(test_bitbucket_default_constructor);
     RUN_TEST(test_bitbucket_explicit_constructor);
-    RUN_TEST(test_bitbucket_acquire);
-    RUN_TEST(test_bitbucket_release);
+    RUN_TEST(test_bitbucket_acquire_ok);
+    RUN_TEST(test_bitbucket_acquire_in_use);
+    RUN_TEST(test_bitbucket_acquire_invalid);
+    RUN_TEST(test_bitbucket_release_ok);
+    RUN_TEST(test_bitbucket_release_not_in_use);
+    RUN_TEST(test_bitbucket_release_invalid);
     RUN_TEST(test_bitbucket_acquire_release_sequence);
-    RUN_TEST(test_bitbucket_out_of_bounds);
     RUN_TEST(test_bitbucket_uint16);
     RUN_TEST(test_bitbucket_uint32);
     RUN_TEST(test_bitbucket_uint64);

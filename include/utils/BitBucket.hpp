@@ -5,6 +5,23 @@
 
 #include "BitMask.hpp"
 
+struct BitBucketBase
+{
+    enum class AcquireResult
+    {
+        Ok,
+        InUse,
+        Invalid
+    };
+
+    enum class ReleaseResult
+    {
+        Ok,
+        NotInUse,
+        Invalid
+    };
+};
+
 /**
  * @brief A utility template class for tracking bit availability (free/occupied).
  *
@@ -15,7 +32,7 @@
  * the resource is occupied, and a cleared bit (0) means it's free.
  */
 template <typename T>
-class BitBucket
+class BitBucket : BitBucketBase
 {
 public:
     /**
@@ -37,31 +54,41 @@ public:
     /**
      * @brief Marks the bit at the specified position as occupied.
      * @param position Bit position (0-based).
-     * @return true if successfully marked as occupied, false if already occupied.
      */
-    constexpr bool acquire(std::size_t position) noexcept
+    constexpr AcquireResult acquire(std::size_t position) noexcept
     {
-        if (position >= kMaxBits || isOccupied(position))
+        if (position >= kMaxBits)
         {
-            return false;
+            return AcquireResult::Invalid;
         }
+
+        if (isOccupied(position))
+        {
+            return AcquireResult::InUse;
+        }
+
         _mask.set(position);
-        return true;
+        return AcquireResult::Ok;
     }
 
     /**
      * @brief Marks the bit at the specified position as free.
      * @param position Bit position (0-based).
-     * @return true if successfully marked as free, false if already free.
      */
-    constexpr bool release(std::size_t position) noexcept
+    constexpr ReleaseResult release(std::size_t position) noexcept
     {
-        if (position >= kMaxBits || isFree(position))
+        if (position >= kMaxBits)
         {
-            return false;
+            return ReleaseResult::Invalid;
         }
+
+        if (isFree(position))
+        {
+            return ReleaseResult::NotInUse;
+        }
+
         _mask.clear(position);
-        return true;
+        return ReleaseResult::Ok;
     }
 
     /**
