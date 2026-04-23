@@ -1,124 +1,62 @@
 #pragma once
 
 #include <cstdint>
-#include <type_traits>
 
 #include "BitMask.hpp"
 
 struct BitBucketBase
 {
-    enum class AcquireResult
+    enum class Result : uint8_t
     {
-        Ok,
+        Ok = 0,
         InUse,
-        Invalid
-    };
-
-    enum class ReleaseResult
-    {
-        Ok,
         NotInUse,
-        Invalid
+        InvalidPosition,
     };
 };
 
-/**
- * @brief A utility template class for tracking bit availability (free/occupied).
- *
- * @tparam T Unsigned integer type for the underlying bit mask.
- *
- * BitBucket provides a semantic layer over BitMask to track resource availability,
- * where each bit represents a resource slot (e.g., GPIO pin). A set bit (1) means
- * the resource is occupied, and a cleared bit (0) means it's free.
- */
-template <typename T>
+template <typename T, size_t NumBits = sizeof(T) * CHAR_BIT>
 class BitBucket : BitBucketBase
 {
 public:
-    /**
-     * @brief Maximum number of bits that can be managed by this BitBucket.
-     */
-    static constexpr std::size_t kMaxBits = sizeof(T) * 8;
-
-    /**
-     * @brief Default constructor. Initializes all bits as free (zero).
-     */
     constexpr BitBucket() noexcept : _mask{} {}
 
-    /**
-     * @brief Constructs a BitBucket with the specified initial occupancy mask.
-     * @param value Initial occupancy mask (1 = occupied, 0 = free).
-     */
     constexpr explicit BitBucket(T value) noexcept : _mask{value} {}
 
-    /**
-     * @brief Marks the bit at the specified position as occupied.
-     * @param position Bit position (0-based).
-     */
-    constexpr AcquireResult acquire(std::size_t position) noexcept
+    [[nodiscard]] constexpr Result acquire(size_t position) noexcept
     {
-        if (position >= kMaxBits)
-        {
-            return AcquireResult::Invalid;
-        }
-
-        if (isOccupied(position))
-        {
-            return AcquireResult::InUse;
-        }
-
-        _mask.set(position);
-        return AcquireResult::Ok;
+        return modify_if(position, true, Result::InUse, &TBitMask::set);
     }
 
-    /**
-     * @brief Marks the bit at the specified position as free.
-     * @param position Bit position (0-based).
-     */
-    constexpr ReleaseResult release(std::size_t position) noexcept
+    [[nodiscard]] constexpr Result release(size_t position) noexcept
     {
-        if (position >= kMaxBits)
-        {
-            return ReleaseResult::Invalid;
-        }
-
-        if (isFree(position))
-        {
-            return ReleaseResult::NotInUse;
-        }
-
-        _mask.clear(position);
-        return ReleaseResult::Ok;
-    }
-
-    /**
-     * @brief Checks if the bit at the specified position is free.
-     * @param position Bit position (0-based).
-     * @return true if the bit is free (0), false if occupied (1).
-     */
-    [[nodiscard]] constexpr bool isFree(std::size_t position) const noexcept
-    {
-        if (position >= kMaxBits)
-        {
-            return false;
-        }
-        return !_mask.test(position);
-    }
-
-    /**
-     * @brief Checks if the bit at the specified position is occupied.
-     * @param position Bit position (0-based).
-     * @return true if the bit is occupied (1), false if free (0).
-     */
-    [[nodiscard]] constexpr bool isOccupied(std::size_t position) const noexcept
-    {
-        if (position >= kMaxBits)
-        {
-            return false;
-        }
-        return _mask.test(position);
+        return modify_if(position, false, Result::NotInUse, &TBitMask::clear);
     }
 
 private:
-    BitMask<T> _mask;
+    using TBitMask = BitMask<T, NumBits>;
+
+    TBitMask _mask;
+
+    template <typename Op>
+    [[nodiscard]] constexpr Result modify_if(size_t position, bool expected_set, Result error_if_wrong, Op op) noexcept
+    {
+        bool is_set = false;
+        if (_mask.test(position, is_set) != BitMaskBase::Result::Ok)
+        {
+            return Result::InvalidPosition;
+        }
+
+        if (is_set == expected_set)
+        {
+            return error_if_wrong;
+        }
+
+        if ((_mask.*op)(position) != BitMaskBase::Result::Ok)
+        {
+            return Result::InvalidPosition;
+        }
+
+        return Result::Ok;
+    }
 };
