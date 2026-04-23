@@ -3,14 +3,14 @@
 #include "utils/BitMask.hpp"
 #include "utils/BitBucket.hpp"
 
-void test_default_constructor()
+void test_bitmask_default_constructor()
 {
     BitMask<uint8_t> mask;
     TEST_ASSERT_FALSE(mask.any());
     TEST_ASSERT_TRUE(mask.none());
 }
 
-void test_explicit_constructor()
+void test_bitmask_explicit_constructor()
 {
     BitMask<uint8_t> mask(0b10101010);
     TEST_ASSERT_TRUE(mask.test(1));
@@ -20,7 +20,7 @@ void test_explicit_constructor()
     TEST_ASSERT_FALSE(mask.test(0));
 }
 
-void test_set()
+void test_bitmask_set()
 {
     BitMask<uint8_t> mask;
     mask.set(3);
@@ -29,7 +29,7 @@ void test_set()
     TEST_ASSERT_TRUE(mask.test(5));
 }
 
-void test_clear()
+void test_bitmask_clear()
 {
     BitMask<uint8_t> mask(0xFF);
     mask.clear(3);
@@ -38,7 +38,7 @@ void test_clear()
     TEST_ASSERT_FALSE(mask.test(5));
 }
 
-void test_toggle()
+void test_bitmask_toggle()
 {
     BitMask<uint8_t> mask;
     mask.toggle(3);
@@ -47,7 +47,7 @@ void test_toggle()
     TEST_ASSERT_FALSE(mask.test(3));
 }
 
-void test_all()
+void test_bitmask_all()
 {
     BitMask<uint8_t> mask_empty;
     TEST_ASSERT_FALSE(mask_empty.all());
@@ -64,7 +64,7 @@ void test_all()
     TEST_ASSERT_TRUE(mask_filled.all());
 }
 
-void test_any()
+void test_bitmask_any()
 {
     BitMask<uint8_t> mask_empty;
     TEST_ASSERT_FALSE(mask_empty.any());
@@ -76,7 +76,7 @@ void test_any()
     TEST_ASSERT_TRUE(mask_full.any());
 }
 
-void test_none()
+void test_bitmask_none()
 {
     BitMask<uint8_t> mask_empty;
     TEST_ASSERT_TRUE(mask_empty.none());
@@ -85,13 +85,13 @@ void test_none()
     TEST_ASSERT_FALSE(mask_one.none());
 }
 
-void test_single_zero()
+void test_bitmask_single_zero()
 {
     BitMask<uint8_t> mask(0);
     TEST_ASSERT_FALSE(mask.single());
 }
 
-void test_single_one_bit()
+void test_bitmask_single_one_bit()
 {
     TEST_ASSERT_TRUE(BitMask<uint8_t>(0x01).single());
     TEST_ASSERT_TRUE(BitMask<uint8_t>(0x02).single());
@@ -99,14 +99,14 @@ void test_single_one_bit()
     TEST_ASSERT_TRUE(BitMask<uint8_t>(0x80).single());
 }
 
-void test_single_multiple_bits()
+void test_bitmask_single_multiple_bits()
 {
     TEST_ASSERT_FALSE(BitMask<uint8_t>(0x03).single());
     TEST_ASSERT_FALSE(BitMask<uint8_t>(0x0F).single());
     TEST_ASSERT_FALSE(BitMask<uint8_t>(0xFF).single());
 }
 
-void test_reset()
+void test_bitmask_reset()
 {
     BitMask<uint8_t> mask(0xFF);
     mask.reset();
@@ -114,7 +114,7 @@ void test_reset()
     TEST_ASSERT_FALSE(mask.any());
 }
 
-void test_fill()
+void test_bitmask_fill()
 {
     BitMask<uint8_t> mask;
     mask.fill();
@@ -124,7 +124,7 @@ void test_fill()
     TEST_ASSERT_EQUAL(0xFF, static_cast<uint8_t>(mask));
 }
 
-void test_method_chaining()
+void test_bitmask_method_chaining()
 {
     BitMask<uint8_t> mask;
     mask.set(1).set(3).clear(1).toggle(5);
@@ -133,7 +133,7 @@ void test_method_chaining()
     TEST_ASSERT_TRUE(mask.test(5));
 }
 
-void test_uint16()
+void test_bitmask_uint16()
 {
     BitMask<uint16_t> mask(0xAAAA);
     TEST_ASSERT_TRUE(mask.test(1));
@@ -141,7 +141,7 @@ void test_uint16()
     TEST_ASSERT_FALSE(mask.test(0));
 }
 
-void test_uint32()
+void test_bitmask_uint32()
 {
     BitMask<uint32_t> mask(0xAAAAAAAA);
     TEST_ASSERT_TRUE(mask.test(1));
@@ -149,7 +149,7 @@ void test_uint32()
     TEST_ASSERT_FALSE(mask.test(0));
 }
 
-void test_uint64()
+void test_bitmask_uint64()
 {
     BitMask<uint64_t> mask(0xAAAAAAAAAAAAAAAAULL);
     TEST_ASSERT_TRUE(mask.test(1));
@@ -157,14 +157,14 @@ void test_uint64()
     TEST_ASSERT_FALSE(mask.test(0));
 }
 
-void test_explicit_conversion()
+void test_bitmask_explicit_conversion()
 {
     BitMask<uint8_t> mask(0b10101010);
     uint8_t value = static_cast<uint8_t>(mask);
     TEST_ASSERT_EQUAL(0xAA, value);
 }
 
-void test_single_uint64_high_bit()
+void test_bitmask_single_uint64_high_bit()
 {
     BitMask<uint64_t> mask(1ULL << 63);
     TEST_ASSERT_TRUE(mask.single());
@@ -292,25 +292,25 @@ int main()
 {
     UNITY_BEGIN();
 
-    RUN_TEST(test_default_constructor);
-    RUN_TEST(test_explicit_constructor);
-    RUN_TEST(test_set);
-    RUN_TEST(test_clear);
-    RUN_TEST(test_toggle);
-    RUN_TEST(test_all);
-    RUN_TEST(test_any);
-    RUN_TEST(test_none);
-    RUN_TEST(test_single_zero);
-    RUN_TEST(test_single_one_bit);
-    RUN_TEST(test_single_multiple_bits);
-    RUN_TEST(test_reset);
-    RUN_TEST(test_fill);
-    RUN_TEST(test_method_chaining);
-    RUN_TEST(test_uint16);
-    RUN_TEST(test_uint32);
-    RUN_TEST(test_uint64);
-    RUN_TEST(test_explicit_conversion);
-    RUN_TEST(test_single_uint64_high_bit);
+    RUN_TEST(test_bitmask_default_constructor);
+    RUN_TEST(test_bitmask_explicit_constructor);
+    RUN_TEST(test_bitmask_set);
+    RUN_TEST(test_bitmask_clear);
+    RUN_TEST(test_bitmask_toggle);
+    RUN_TEST(test_bitmask_all);
+    RUN_TEST(test_bitmask_any);
+    RUN_TEST(test_bitmask_none);
+    RUN_TEST(test_bitmask_single_zero);
+    RUN_TEST(test_bitmask_single_one_bit);
+    RUN_TEST(test_bitmask_single_multiple_bits);
+    RUN_TEST(test_bitmask_reset);
+    RUN_TEST(test_bitmask_fill);
+    RUN_TEST(test_bitmask_method_chaining);
+    RUN_TEST(test_bitmask_uint16);
+    RUN_TEST(test_bitmask_uint32);
+    RUN_TEST(test_bitmask_uint64);
+    RUN_TEST(test_bitmask_explicit_conversion);
+    RUN_TEST(test_bitmask_single_uint64_high_bit);
 
     RUN_TEST(test_bitbucket_default_constructor);
     RUN_TEST(test_bitbucket_explicit_constructor);
