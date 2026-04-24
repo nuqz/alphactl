@@ -38,6 +38,11 @@ public:
     /**
      * @brief Maximum number of bits available in this BitMask instance.
      */
+    static constexpr size_t kMaxBits = sizeof(T) * CHAR_BIT;
+
+    /**
+     * @brief Active number of bits available in this BitMask instance.
+     */
     static constexpr size_t kActiveBits = NumBits;
 
     /**
@@ -47,7 +52,7 @@ public:
      */
     [[nodiscard]] static constexpr T make_full_mask(size_t num_bits) noexcept
     {
-        if (num_bits >= kActiveBits)
+        if (num_bits >= kMaxBits)
         {
             return ~static_cast<T>(0);
         }
