@@ -15,7 +15,7 @@ namespace MockGPIO
 
     int get_level(gpio_num_t pin)
     {
-        return pin_levels.count(pin) ? pin_levels[pin] : 1;
+        return pin_levels.count(pin) ? pin_levels[pin] : 0;
     }
 
     void set_level(gpio_num_t pin, int level)
