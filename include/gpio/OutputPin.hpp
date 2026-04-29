@@ -21,5 +21,5 @@ public:
         ESP_ERROR_CHECK(gpio_config(&cfg));
     }
 
-    inline int set_level(int level) noexcept { ESP_ERROR_CHECK(gpio_set_level(this->num, level)); }
+    inline void set_level(int level) noexcept { ESP_ERROR_CHECK(gpio_set_level(this->num, level)); }
 };
