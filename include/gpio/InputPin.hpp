@@ -22,4 +22,5 @@ public:
     };
 
     inline int get_level() const noexcept { return gpio_get_level(this->num); }
+    [[nodiscard]] inline int get_level() const noexcept { return gpio_get_level(this->num); }
 };
