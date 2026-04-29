@@ -10,7 +10,6 @@ namespace MockGPIO
 {
     extern std::unordered_map<int, gpio_config_t> configured_pins;
     extern std::unordered_map<int, int> pin_levels;
-    extern bool aborted;
 
     void reset();
     int get_level(gpio_num_t pin);

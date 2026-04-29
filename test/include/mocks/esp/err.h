@@ -15,6 +15,20 @@ typedef int esp_err_t;
 #define ESP_ERR_NOT_SUPPORTED 0x105
 #define ESP_ERR_TIMEOUT 0x106
 
+namespace MockErr
+{
+    inline bool aborted = false;
+
+    inline void reset() { aborted = false; }
+}
+
+#undef abort
+#define abort()                  \
+    do                           \
+    {                            \
+        MockErr::aborted = true; \
+    } while (0)
+
 #define ESP_ERROR_CHECK(x)                                                \
     do                                                                    \
     {                                                                     \
@@ -23,9 +37,6 @@ typedef int esp_err_t;
         {                                                                 \
             fprintf(stderr, "ESP_ERROR_CHECK failed: err=0x%x (%s:%d)\n", \
                     err_, __FILE__, __LINE__);                            \
-            throw std::runtime_error("ESP_ERROR_CHECK failed");           \
+            abort();                                                      \
         }                                                                 \
     } while (0)
-
-#undef abort
-#define abort() throw std::runtime_error("abort() called in mock")

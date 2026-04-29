@@ -3,7 +3,7 @@
 #include "gpio/InputPin.hpp"
 #include "gpio/OutputPin.hpp"
 #include "gpio/PinBucket.hpp"
-#include "utils/log.h"
+#include "utils/err.h"
 
 void setUp()
 {
@@ -164,16 +164,13 @@ void test_pin_bucket()
     TEST_ASSERT_EQUAL(GPIO_MODE_OUTPUT, config->mode);
 
     // Test that duplicate registration causes abort
-    bool aborted = false;
-    try
-    {
-        auto duplicate_pin = PinBucket::get(InputPin<GPIO_NUM_0>{});
-    }
-    catch (const std::runtime_error &e)
-    {
-        aborted = true;
-    }
-    TEST_ASSERT_TRUE(aborted);
+    TEST_ASSERT_FALSE(MockErr::aborted); // Reset in setUp, should be false
+
+    // Try to register duplicate pin - this should call abort() and set aborted flag
+    (void)PinBucket::get(InputPin<GPIO_NUM_0>{});
+
+    // Verify that abort was called
+    TEST_ASSERT_TRUE(MockErr::aborted);
 }
 
 /**
