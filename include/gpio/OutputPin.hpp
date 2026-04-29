@@ -14,10 +14,10 @@ public:
     {
         gpio_config_t cfg = {
             .pin_bit_mask = this->mask,
-            .mode = OpenDrain ? GPIO_MODE_OUTPUT_OD | GPIO_MODE_OUTPUT,
+            .mode = OpenDrain ? GPIO_MODE_OUTPUT_OD : GPIO_MODE_OUTPUT,
             .pull_up_en = (PullMode == PinBase::PullMode::Up) ? GPIO_PULLUP_ENABLE : GPIO_PULLUP_DISABLE,
             .pull_down_en = (PullMode == PinBase::PullMode::Down) ? GPIO_PULLDOWN_ENABLE : GPIO_PULLDOWN_DISABLE,
-            .intr_type = InterruptType };
+            .intr_type = GPIO_INTR_DISABLE};
         ESP_ERROR_CHECK(gpio_config(&cfg));
     }
 
